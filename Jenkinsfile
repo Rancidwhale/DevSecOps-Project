@@ -3,8 +3,8 @@ pipeline{
     environment {
         SCANNER_HOME=tool 'sqube-scanner'
         TMDB_V3_API_KEY = credentials('tmdb-api-key')
-        IMAGE_NAME = "netflix" // Name of the image created in Jenkins
-        CONTAINER_NAME = "netflix" // Name of the container created in Jenkins
+        IMAGE_NAME = "netflix"
+        CONTAINER_NAME = "netflix" 
 
     }
     stages{
