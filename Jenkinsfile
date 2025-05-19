@@ -44,25 +44,25 @@ pipeline{
             }
         }
     }
-    // post {
-    //     always {
-    //         echo 'slack Notification.'
-    //         slackSend channel: '#sample1',
-    //         color: COLOR_MAP [currentBuild.currentResult],
-    //         message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URl}"
-            
-    //     }
-    // }
-    post{
+    post {
         always {
-            emailext(
-                to: 'muhammadabdullah3602@gmail.com',
-                subject: 'Build Status : ${BUILD_STATUS} of Build Number : ${BUILD_NUMBER}',
-                body: 'this is the build status for this build',
-                attachLog: true
-            )
+            echo 'slack Notification.'
+            slackSend channel: '#sample1',
+            color: COLOR_MAP [currentBuild.currentResult],
+            message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URl}"
+            
         }
     }
+    // post{
+    //     always {
+    //         emailext(
+    //             to: 'muhammadabdullah3602@gmail.com',
+    //             subject: 'Build Status : ${BUILD_STATUS} of Build Number : ${BUILD_NUMBER}',
+    //             body: 'this is the build status for this build',
+    //             attachLog: true
+    //         )
+    //     }
+    // }
 }
 
 // pipeline{
