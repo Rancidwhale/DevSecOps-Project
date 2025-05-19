@@ -17,7 +17,8 @@ pipeline{
         stage('git scm')
         {
             steps{
-                git 'https://github.com/Rancidwhale/DevSecOps-Project.git'
+                // git branch 'https://github.com/Rancidwhale/DevSecOps-Project.git'
+                git branch: 'dev', url: 'https://github.com/Rancidwhale/DevSecOps-Project.git'
             }
         }
         stage('Code quality')
