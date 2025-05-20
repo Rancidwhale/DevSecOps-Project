@@ -13,13 +13,13 @@ pipeline{
 
     }
     stages{
-        stage('clean')
+        stage('Clean Workspace')
         {
             steps{
                 cleanWs()
             }
         }
-        stage('git scm')
+        stage('GIT SCM')
         {
             steps{
                 // git branch 'https://github.com/Rancidwhale/DevSecOps-Project.git'
