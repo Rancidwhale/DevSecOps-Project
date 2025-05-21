@@ -9,7 +9,9 @@ pipeline{
         SCANNER_HOME=tool 'sqube-scanner'
         TMDB_V3_API_KEY = credentials('tmdb-api-key')
         IMAGE_NAME = "netflix"
-        CONTAINER_NAME = "netflix" 
+        // CONTAINER_NAME = "netflix" 
+        CONTAINERS = 'container1,container2,container3'
+        PORTS = '8082,8083,8084'
 
     }
     stages{
@@ -49,29 +51,57 @@ pipeline{
                 sh "trivy fs . > trivyfs.txt"     
             }
         }
+        // stage('Clean Up Docker Resources') {
+        //     steps {
+        //         script {
+        //             // Remove the specific container
+        //             sh '''
+        //             if docker ps -a --format '{{.Names}}' | grep -q $CONTAINER_NAME; then
+        //                 echo "Stopping and removing container: $CONTAINER_NAME"
+        //                 docker stop $CONTAINER_NAME
+        //                 docker rm $CONTAINER_NAME
+        //             else
+        //                 echo "Container $CONTAINER_NAME does not exist."
+        //             fi
+        //             '''
+
+        //             // Remove the specific image
+        //             sh '''
+        //             if docker images -q $IMAGE_NAME; then
+        //                 echo "Removing image: $IMAGE_NAME"
+        //                 docker rmi -f $IMAGE_NAME
+        //             else
+        //                 echo "Image $IMAGE_NAME does not exist."
+        //             fi
+        //             '''
+        //         }
+        //     }
+        // }
         stage('Clean Up Docker Resources') {
             steps {
                 script {
-                    // Remove the specific container
-                    sh '''
-                    if docker ps -a --format '{{.Names}}' | grep -q $CONTAINER_NAME; then
-                        echo "Stopping and removing container: $CONTAINER_NAME"
-                        docker stop $CONTAINER_NAME
-                        docker rm $CONTAINER_NAME
-                    else
-                        echo "Container $CONTAINER_NAME does not exist."
-                    fi
-                    '''
+                    def containerList = env.CONTAINERS.split(',')
 
-                    // Remove the specific image
-                    sh '''
+                    for (c in containerList) {
+                        sh """
+                        if docker ps -a --format '{{.Names}}' | grep -q ^${c}\$; then
+                            echo "Stopping and removing container: ${c}"
+                            docker stop ${c}
+                            docker rm ${c}
+                        else
+                            echo "Container ${c} does not exist."
+                        fi
+                        """
+                    }
+
+                    sh """
                     if docker images -q $IMAGE_NAME; then
                         echo "Removing image: $IMAGE_NAME"
                         docker rmi -f $IMAGE_NAME
                     else
                         echo "Image $IMAGE_NAME does not exist."
                     fi
-                    '''
+                    """
                 }
             }
         }
@@ -87,10 +117,24 @@ pipeline{
                 sh "trivy image $IMAGE_NAME > trivyimage.txt"
             }
         }
-        stage('Deploy to container'){
-            steps{
-                script{
-                    sh 'docker run -itd --name $CONTAINER_NAME -p 8081:80 $IMAGE_NAME'
+        // stage('Deploy to container'){
+        //     steps{
+        //         script{
+        //             sh 'docker run -itd --name $CONTAINER_NAME -p 8081:80 $IMAGE_NAME'
+        //         }
+        //     }
+        // }
+        stage('Deploy to container') {
+            steps {
+                script {
+                    def containerList = env.CONTAINERS.split(',')         // e.g., web1,web2,web3
+                    def portList = env.PORTS.split(',')                   // e.g., 8082,8083,8084
+
+                    for (int i = 0; i < containerList.size(); i++) {
+                        def container = containerList[i]
+                        def port = portList[i]
+                        sh "docker run -d --name ${container} -p ${port}:80 ${IMAGE_NAME}"
+                    }
                 }
             }
         }
