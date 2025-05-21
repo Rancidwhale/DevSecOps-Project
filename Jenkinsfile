@@ -23,8 +23,8 @@ pipeline{
         {
             steps{
                 // git branch 'https://github.com/Rancidwhale/DevSecOps-Project.git'
-                // git branch: 'dev', url: 'https://github.com/Rancidwhale/DevSecOps-Project.git'
-                git branch: 'dev', credentialsId: 'git', url: 'git@github.com:Rancidwhale/DevSecOps-Project.git'
+                git branch: 'dev', url: 'https://github.com/Rancidwhale/DevSecOps-Project.git'
+                // git branch: 'dev', credentialsId: 'git', url: 'git@github.com:Rancidwhale/DevSecOps-Project.git'
             }
         }
         stage('Code quality')
