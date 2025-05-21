@@ -19,7 +19,7 @@ pipeline{
                 cleanWs()
             }
         }
-        stage('GIT SCM ')
+        stage('GIT SCM clone')
         {
             steps{
                 // git branch 'https://github.com/Rancidwhale/DevSecOps-Project.git'
