@@ -187,46 +187,46 @@ pipeline{
 //             }
 //         }
        
-    //     stage('OWASP FS SCAN') {
-    //          steps {
-    //          withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
-    //         dependencyCheck additionalArguments: "--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey ${NVD_API_KEY}", odcInstallation: 'DP-Check'
-    //          }
-    //         dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-    //         }
-    //    }
+//         stage('OWASP FS SCAN') {
+//              steps {
+//              withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
+//             dependencyCheck additionalArguments: "--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey ${NVD_API_KEY}", odcInstallation: 'DP-Check'
+//              }
+//             dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+//             }
+//        }
 
-        // stage('TRIVY FS SCAN') {
-        //     steps {
-        //         sh "trivy fs . > trivyfs.txt"     
-        //     }
-        // }
-        // stage('Clean Up Docker Resources') {
-        //     steps {
-        //         script {
-        //             // Remove the specific container
-        //             sh '''
-        //             if docker ps -a --format '{{.Names}}' | grep -q $CONTAINER_NAME; then
-        //                 echo "Stopping and removing container: $CONTAINER_NAME"
-        //                 docker stop $CONTAINER_NAME
-        //                 docker rm $CONTAINER_NAME
-        //             else
-        //                 echo "Container $CONTAINER_NAME does not exist."
-        //             fi
-        //             '''
+//         stage('TRIVY FS SCAN') {
+//             steps {
+//                 sh "trivy fs . > trivyfs.txt"     
+//             }
+//         }
+//         stage('Clean Up Docker Resources') {
+//             steps {
+//                 script {
+//                     // Remove the specific container
+//                     sh '''
+//                     if docker ps -a --format '{{.Names}}' | grep -q $CONTAINER_NAME; then
+//                         echo "Stopping and removing container: $CONTAINER_NAME"
+//                         docker stop $CONTAINER_NAME
+//                         docker rm $CONTAINER_NAME
+//                     else
+//                         echo "Container $CONTAINER_NAME does not exist."
+//                     fi
+//                     '''
 
-        //             // Remove the specific image
-        //             sh '''
-        //             if docker images -q $IMAGE_NAME; then
-        //                 echo "Removing image: $IMAGE_NAME"
-        //                 docker rmi -f $IMAGE_NAME
-        //             else
-        //                 echo "Image $IMAGE_NAME does not exist."
-        //             fi
-        //             '''
-        //         }
-        //     }
-        // }
+//                     // Remove the specific image
+//                     sh '''
+//                     if docker images -q $IMAGE_NAME; then
+//                         echo "Removing image: $IMAGE_NAME"
+//                         docker rmi -f $IMAGE_NAME
+//                     else
+//                         echo "Image $IMAGE_NAME does not exist."
+//                     fi
+//                     '''
+//                 }
+//             }
+//         }
 //         stage("Docker Build & Push"){
 //             steps{
 //                 script{
@@ -237,11 +237,11 @@ pipeline{
 //                 }
 //             }
 //         }
-        // stage("TRIVY"){
-        //     steps{
-        //         sh "trivy image $IMAGE_NAME > trivyimage.txt"
-        //     }
-        // }
+//         stage("TRIVY"){
+//             steps{
+//                 sh "trivy image $IMAGE_NAME > trivyimage.txt"
+//             }
+//         }
 //         stage('Deploy to container'){
 //             steps{
 //                 sh 'docker run -itd --name $CONTAINER_NAME -p 8081:80 $IMAGE_NAME'
