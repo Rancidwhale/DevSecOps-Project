@@ -1,3 +1,5 @@
+
+
 def COLOR_MAP = [
     'SUCCESS': 'good',
     'FAILURE': 'danger'
@@ -9,8 +11,7 @@ pipeline{
         SCANNER_HOME=tool 'sqube-scanner'
         TMDB_V3_API_KEY = credentials('tmdb-api-key')
         IMAGE_NAME = "netflix"
-        // CONTAINER_NAME = "netflix" 
-        CONTAINERS = 'container1,container2,container3'
+        CONTAINER_NAME = "netflix" 
         PORTS = '8082,8083,8084'
 
     }
@@ -24,9 +25,7 @@ pipeline{
         stage('GIT SCM clone')
         {
             steps{
-                // git branch 'https://github.com/Rancidwhale/DevSecOps-Project.git'
                 git branch: 'dev', url: 'https://github.com/Rancidwhale/DevSecOps-Project.git'
-                // git branch: 'dev', credentialsId: 'git', url: 'git@github.com:Rancidwhale/DevSecOps-Project.git'
             }
         }
         stage('Code quality')
@@ -51,60 +50,32 @@ pipeline{
                 sh "trivy fs . > trivyfs.txt"     
             }
         }
-        // stage('Clean Up Docker Resources') {
-        //     steps {
-        //         script {
-        //             // Remove the specific container
-        //             sh '''
-        //             if docker ps -a --format '{{.Names}}' | grep -q $CONTAINER_NAME; then
-        //                 echo "Stopping and removing container: $CONTAINER_NAME"
-        //                 docker stop $CONTAINER_NAME
-        //                 docker rm $CONTAINER_NAME
-        //             else
-        //                 echo "Container $CONTAINER_NAME does not exist."
-        //             fi
-        //             '''
-
-        //             // Remove the specific image
-        //             sh '''
-        //             if docker images -q $IMAGE_NAME; then
-        //                 echo "Removing image: $IMAGE_NAME"
-        //                 docker rmi -f $IMAGE_NAME
-        //             else
-        //                 echo "Image $IMAGE_NAME does not exist."
-        //             fi
-        //             '''
-        //         }
-        //     }
-        // }
         stage('Clean Up Docker Resources') {
             steps {
                 script {
-                    def containerList = env.CONTAINERS.split(',')
+                    sh '''
+                    if docker ps -a --format '{{.Names}}' | grep -q $CONTAINER_NAME; then
+                        echo "Stopping and removing container: $CONTAINER_NAME"
+                        docker stop $CONTAINER_NAME
+                        docker rm $CONTAINER_NAME
+                    else
+                        echo "Container $CONTAINER_NAME does not exist."
+                    fi
+                    '''
 
-                    for (c in containerList) {
-                        sh """
-                        if docker ps -a --format '{{.Names}}' | grep -q ^${c}\$; then
-                            echo "Stopping and removing container: ${c}"
-                            docker stop ${c}
-                            docker rm ${c}
-                        else
-                            echo "Container ${c} does not exist."
-                        fi
-                        """
-                    }
-
-                    sh """
+                    // Remove the specific image
+                    sh '''
                     if docker images -q $IMAGE_NAME; then
                         echo "Removing image: $IMAGE_NAME"
                         docker rmi -f $IMAGE_NAME
                     else
                         echo "Image $IMAGE_NAME does not exist."
                     fi
-                    """
+                    '''
                 }
             }
         }
+        
         stage("Docker Build"){
             steps{
                 script{
@@ -117,27 +88,14 @@ pipeline{
                 sh "trivy image $IMAGE_NAME > trivyimage.txt"
             }
         }
-        // stage('Deploy to container'){
-        //     steps{
-        //         script{
-        //             sh 'docker run -itd --name $CONTAINER_NAME -p 8081:80 $IMAGE_NAME'
-        //         }
-        //     }
-        // }
-        stage('Deploy to container') {
-            steps {
-                script {
-                    def containerList = env.CONTAINERS.split(',')         // e.g., web1,web2,web3
-                    def portList = env.PORTS.split(',')                   // e.g., 8082,8083,8084
-
-                    for (int i = 0; i < containerList.size(); i++) {
-                        def container = containerList[i]
-                        def port = portList[i]
-                        sh "docker run -d --name ${container} -p ${port}:80 ${IMAGE_NAME}"
-                    }
+        stage('Deploy to container'){
+            steps{
+                script{
+                    sh 'docker run -itd --name $CONTAINER_NAME -p 8081:80 $IMAGE_NAME'
                 }
             }
         }
+        
     }
     post {
 
@@ -154,10 +112,171 @@ pipeline{
                 subject: 'Build Status : ${BUILD_STATUS} of Build Number : ${BUILD_NUMBER}',
                 body: 'this is the build status for this build',
                 attachLog: true
+                attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
             )
         }
+    }
 }
-}
+// def COLOR_MAP = [
+//     'SUCCESS': 'good',
+//     'FAILURE': 'danger'
+//     ]
+
+// pipeline{
+//     agent any
+//     environment {
+//         SCANNER_HOME=tool 'sqube-scanner'
+//         TMDB_V3_API_KEY = credentials('tmdb-api-key')
+//         IMAGE_NAME = "netflix"
+//         // CONTAINER_NAME = "netflix" 
+//         CONTAINERS = 'container1,container2,container3'
+//         PORTS = '8082,8083,8084'
+
+//     }
+//     stages{
+//         stage('Clean Workspace')
+//         {
+//             steps{
+//                 cleanWs()
+//             }
+//         }
+//         stage('GIT SCM clone')
+//         {
+//             steps{
+//                 // git branch 'https://github.com/Rancidwhale/DevSecOps-Project.git'
+//                 git branch: 'dev', url: 'https://github.com/Rancidwhale/DevSecOps-Project.git'
+//                 // git branch: 'dev', credentialsId: 'git', url: 'git@github.com:Rancidwhale/DevSecOps-Project.git'
+//             }
+//         }
+//         stage('Code quality')
+//         {
+//             steps{
+//                 withSonarQubeEnv('sqube-server'){
+//                     sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=DevSecOps-demorun \
+//                     -Dsonar.projectKey=DevSecOps-Project'''
+//                 }
+//             }
+//         }
+//         stage('OWASP FS SCAN') {
+//             steps {
+//                 withCredentials([string(credentialsId: 'nvd-api-key', variable: 'NVD_API_KEY')]) {
+//                 dependencyCheck additionalArguments: "--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey ${NVD_API_KEY}", odcInstallation: 'owasp'
+//             }
+//             dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+//             }
+//        }
+//         stage('TRIVY FS SCAN') {
+//             steps {
+//                 sh "trivy fs . > trivyfs.txt"     
+//             }
+//         }
+//         // stage('Clean Up Docker Resources') {
+//         //     steps {
+//         //         script {
+//         //             // Remove the specific container
+//         //             sh '''
+//         //             if docker ps -a --format '{{.Names}}' | grep -q $CONTAINER_NAME; then
+//         //                 echo "Stopping and removing container: $CONTAINER_NAME"
+//         //                 docker stop $CONTAINER_NAME
+//         //                 docker rm $CONTAINER_NAME
+//         //             else
+//         //                 echo "Container $CONTAINER_NAME does not exist."
+//         //             fi
+//         //             '''
+
+//         //             // Remove the specific image
+//         //             sh '''
+//         //             if docker images -q $IMAGE_NAME; then
+//         //                 echo "Removing image: $IMAGE_NAME"
+//         //                 docker rmi -f $IMAGE_NAME
+//         //             else
+//         //                 echo "Image $IMAGE_NAME does not exist."
+//         //             fi
+//         //             '''
+//         //         }
+//         //     }
+//         // }
+//         stage('Clean Up Docker Resources') {
+//             steps {
+//                 script {
+//                     def containerList = env.CONTAINERS.split(',')
+
+//                     for (c in containerList) {
+//                         sh """
+//                         if docker ps -a --format '{{.Names}}' | grep -q ^${c}\$; then
+//                             echo "Stopping and removing container: ${c}"
+//                             docker stop ${c}
+//                             docker rm ${c}
+//                         else
+//                             echo "Container ${c} does not exist."
+//                         fi
+//                         """
+//                     }
+
+//                     sh """
+//                     if docker images -q $IMAGE_NAME; then
+//                         echo "Removing image: $IMAGE_NAME"
+//                         docker rmi -f $IMAGE_NAME
+//                     else
+//                         echo "Image $IMAGE_NAME does not exist."
+//                     fi
+//                     """
+//                 }
+//             }
+//         }
+//         stage("Docker Build"){
+//             steps{
+//                 script{
+//                        sh 'docker build --build-arg TMDB_V3_API_KEY=$TMDB_V3_API_KEY -t $IMAGE_NAME .'
+//                 }
+//             }
+//         }
+//         stage("TRIVY"){
+//             steps{
+//                 sh "trivy image $IMAGE_NAME > trivyimage.txt"
+//             }
+//         }
+//         // stage('Deploy to container'){
+//         //     steps{
+//         //         script{
+//         //             sh 'docker run -itd --name $CONTAINER_NAME -p 8081:80 $IMAGE_NAME'
+//         //         }
+//         //     }
+//         // }
+//         stage('Deploy to container') {
+//             steps {
+//                 script {
+//                     def containerList = env.CONTAINERS.split(',')         // e.g., web1,web2,web3
+//                     def portList = env.PORTS.split(',')                   // e.g., 8082,8083,8084
+
+//                     for (int i = 0; i < containerList.size(); i++) {
+//                         def container = containerList[i]
+//                         def port = portList[i]
+//                         sh "docker run -d --name ${container} -p ${port}:80 ${IMAGE_NAME}"
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     post {
+
+//         always {
+//             echo 'slack Notification.'
+//             slackSend channel: '#sample1',
+//             color: COLOR_MAP [currentBuild.currentResult],
+//             message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URl}"
+            
+//         }
+//         failure {
+//             emailext(
+//                 to: 'muhammadabdullah3602@gmail.com',
+//                 subject: 'Build Status : ${BUILD_STATUS} of Build Number : ${BUILD_NUMBER}',
+//                 body: 'this is the build status for this build',
+//                 attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+//             )
+//         }
+// }
+// }
 
 // pipeline{
 //     agent any
