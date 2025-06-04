@@ -111,7 +111,6 @@ pipeline{
                 to: 'muhammadabdullah3602@gmail.com',
                 subject: 'Build Status : ${BUILD_STATUS} of Build Number : ${BUILD_NUMBER}',
                 body: 'this is the build status for this build',
-                attachLog: true
                 attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
             )
         }
